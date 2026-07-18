@@ -1,4 +1,4 @@
 import { Button } from "@workspace/ui/components/button"
 export default function Home() {
-  return <div>web</div>
+  return <div>admin</div>
 }

@@ -4,6 +4,7 @@ import eslintConfigPrettier from "eslint-config-prettier"
 import pluginReact from "eslint-plugin-react"
 import pluginReactHooks from "eslint-plugin-react-hooks"
 import globals from "globals"
+import { globalIgnores } from "eslint/config"
 import tseslint from "typescript-eslint"
 
 import { config as baseConfig } from "./base.js"
@@ -48,4 +49,5 @@ export const nextJsConfig = [
       "react/prop-types": "off",
     },
   },
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]
