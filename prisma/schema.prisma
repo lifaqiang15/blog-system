@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  AUTHOR
+  USER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// 用户表
+// 第二列是 Prisma 内置标量类型：String、Int、BigInt、Float、Decimal、Boolean、DateTime、Bytes、Json
+// 问号表示字段允许为 NULL，数据库可空，无问号则 NOT NULL
+// @id标记该字段为主键，每条数据唯一标识，不可重复、不能为空
+// dbgenerated("函数")代表默认值由数据库引擎自动生成
+// @db.XXX全是数据库原生类型修饰注解，@db.VarChar(255)表示VARCHAR(255)
+// 无@db.XXX这类数据库注解时，PostgreSQL 默认映射为 text
+// @default(USER)会在数据库创建独立自定义枚举类型
+// @updatedAt表示每次更新这条数据时，自动刷新 updatedAt 为当前时间，不用手动赋值
+// posts Post[] 一个User包含多条关联Post，仅代码层面，数据库不会生成该字段
+model User {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String         @unique @db.VarChar(255)
+  passwordHash   String?        @db.VarChar(255)
+  name           String?        @db.VarChar(100)
+  avatar         String?
+  bio            String?
+  role           UserRole       @default(USER)
+  approvalStatus ApprovalStatus @default(APPROVED)
+  canAccessAdmin Boolean        @default(false)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  lastLoginAt    DateTime?
+  posts          Post[]
+  postLikes      PostLike[]
+}
+
+model Category {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @unique @db.VarChar(100)
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
+}
+
+// Json 是 Prisma 字段类型，PostgreSQL 中通常映射为 jsonb
+// fields: [authorId]：本表外键字段
+// references: [id]：关联目标表的主键
+// onDelete级联策略: Cascade / SetNull / Restrict
+// Cascade：删除主表数据，自动删除所有关联子数据（删用户，文章全删）
+// SetNull：删除主数据，子表外键置 null（要求外键字段 ? 可空）
+// Restrict：禁止删除，存在关联数据时直接报错（安全默认值）
+model Post {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String     @db.VarChar(200)
+  content     Json?
+  summary     String?
+  coverImage  String?
+  status      PostStatus @default(DRAFT)
+  authorId    String     @db.Uuid
+  categoryId  String     @db.Uuid
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  postTags    PostTag[]
+  postLikes   PostLike[]
+
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String    @unique @db.VarChar(100)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  postTags  PostTag[]
+}
+
+// @@id([postId, tagId]) postId和tagId组合在一起充当唯一主键
+model PostTag {
+  postId    String   @db.Uuid
+  tagId     String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model PostLike {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
