@@ -1,4 +1,5 @@
-import { Button } from "@workspace/ui/components/button"
-export default function Home() {
-  return <div>admin</div>
+import { redirect } from "next/navigation"
+
+export default function HomePage() {
+  redirect("/dashboard")
 }

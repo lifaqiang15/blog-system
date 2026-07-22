@@ -1,28 +1,19 @@
-import { Geist, Geist_Mono } from "next/font/google"
-
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@workspace/ui/lib/utils";
+import type { Metadata } from "next"
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'})
-
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
-
+export const metadata: Metadata = {
+  title: "博客管理系统",
+  description: "后台",
+}
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
-    >
-      <body>
+    <html lang="zh-CN" suppressHydrationWarning className="h-full">
+      <body className="h-full">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
