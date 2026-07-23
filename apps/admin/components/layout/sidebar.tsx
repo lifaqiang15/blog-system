@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard, PenSquare, FileText, FolderOpen, Tag, MessageSquare, Users } from "lucide-react"
 
 const navItems = [
-  { href: "/dashboard", label: "首页", icon: LayoutDashboard },
+  { href: "/dashboard/overview", label: "首页", icon: LayoutDashboard },
   { href: "/dashboard/posts/new", label: "新建博客", icon: PenSquare },
   { href: "/dashboard/posts", label: "博客管理", icon: FileText },
   { href: "/dashboard/categories", label: "分类管理", icon: FolderOpen },
