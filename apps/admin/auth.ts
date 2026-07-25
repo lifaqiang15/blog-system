@@ -6,6 +6,10 @@ import { authConfig } from "@/auth.config"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60 * 8, // 8小时
+  },
   providers: [
     Credentials({
       credentials: {
