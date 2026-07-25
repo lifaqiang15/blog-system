@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FolderOpen, Plus, Pencil, Trash2, Search } from "lucide-react"
+import { Plus, Pencil, Trash2, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -110,30 +110,21 @@ export default function CategoriesPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
+      {/* Toolbar */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FolderOpen className="h-5 w-5 text-zinc-500" />
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-900">分类管理</h1>
-          <span className="ml-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500">
-            {categories.length}
-          </span>
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <Input
+            placeholder="搜索分类名称..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8"
+          />
         </div>
         <Button onClick={openCreate} size="sm" className="gap-1.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white shadow-sm">
           <Plus className="h-4 w-4" />
           新建分类
         </Button>
-      </div>
-
-      {/* Search */}
-      <div className="relative w-full max-w-sm">
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-        <Input
-          placeholder="搜索分类名称..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-8"
-        />
       </div>
 
       {/* Table */}
@@ -163,7 +154,7 @@ export default function CategoriesPage() {
                   }`}
                 >
                   <td className="px-4 py-3 font-medium text-zinc-900">{category.name}</td>
-                  <td className="max-w-[240px] truncate px-4 py-3 text-zinc-500">
+                  <td className="max-w-60 truncate px-4 py-3 text-zinc-500">
                     {category.description || "—"}
                   </td>
                   <td className="px-4 py-3 text-zinc-400">{category.createdAt}</td>
