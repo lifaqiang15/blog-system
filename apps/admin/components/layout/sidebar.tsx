@@ -20,7 +20,7 @@ export default function Sidebar() {
   return (
     <aside className="flex h-full w-60 flex-col border-r border-zinc-200 bg-white">
       <div className="flex h-14 items-center border-b border-zinc-200 px-4">
-        <span className="font-semibold tracking-tight text-sm">博客管理后台</span>
+        <span className="font-semibold tracking-tight text-lg">博客管理后台</span>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
