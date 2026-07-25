@@ -1,11 +1,15 @@
-import NextAuth from "next-auth"
+import NextAuth, { type NextAuthResult } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { authConfig } from "@/auth.config"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const result: NextAuthResult = NextAuth({
   ...authConfig,
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60 * 8, // 8小时
+  },
   providers: [
     Credentials({
       credentials: {
@@ -42,3 +46,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
 })
+
+export const { handlers, signIn, signOut, auth } = result
