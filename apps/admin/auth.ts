@@ -47,4 +47,7 @@ const result: NextAuthResult = NextAuth({
   ],
 })
 
-export const { handlers, signIn, signOut, auth } = result
+export const handlers: NextAuthResult["handlers"] = result.handlers
+export const signIn: NextAuthResult["signIn"] = result.signIn
+export const signOut: NextAuthResult["signOut"] = result.signOut
+export const auth: NextAuthResult["auth"] = result.auth
