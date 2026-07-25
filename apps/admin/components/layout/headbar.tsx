@@ -1,8 +1,9 @@
 "use client"
 
-import { PanelLeft, ChevronRight } from "lucide-react"
+import { PanelLeft, ChevronRight, LogOut } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { logoutAction } from "@/app/dashboard/actions"
 
 const routeLabels: Record<string, string> = {
   overview: "首页",
@@ -41,9 +42,11 @@ function Breadcrumb() {
 interface HeadbarProps {
   collapsed: boolean
   onToggle: () => void
+  userName: string
+  userInitial: string
 }
 
-export default function Headbar({ collapsed, onToggle }: HeadbarProps) {
+export default function Headbar({ collapsed, onToggle, userName, userInitial }: HeadbarProps) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
       <div className="flex items-center gap-3">
@@ -60,9 +63,20 @@ export default function Headbar({ collapsed, onToggle }: HeadbarProps) {
       </div>
       <div className="flex items-center gap-2">
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
-          张
+          {userInitial}
         </div>
-        <span className="text-sm font-medium text-gray-700">张三</span>
+        <span className="text-sm font-medium text-gray-700">{userName}</span>
+        <form action={logoutAction}>
+          <Button
+            type="submit"
+            variant="ghost"
+            size="icon"
+            aria-label="退出登录"
+            className="text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </form>
       </div>
     </header>
   )

@@ -1,55 +1,14 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useActionState, useState } from "react"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { loginAction } from "./actions"
 
 export default function AuthPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [state, action, pending] = useActionState(loginAction, null)
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-
-    if (!email.trim()) {
-      setError("请输入邮箱")
-      return
-    }
-    if (!password) {
-      setError("请输入密码")
-      return
-    }
-
-    setLoading(true)
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.message ?? "登录失败，请稍后重试")
-        return
-      }
-
-      localStorage.setItem("admin_token", data.token)
-      router.push("/dashboard")
-    } catch {
-      setError("网络异常，请稍后重试")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="flex min-h-full items-center justify-center bg-gray-50 dark:bg-zinc-950">
@@ -62,7 +21,7 @@ export default function AuthPage() {
             <p className="mt-1 text-sm text-zinc-400">请登录以继续</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+          <form action={action} className="flex flex-col gap-4" noValidate>
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="email"
@@ -72,12 +31,11 @@ export default function AuthPage() {
               </label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="admin@example.com"
                 autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
+                disabled={pending}
                 className="h-9"
               />
             </div>
@@ -92,12 +50,11 @@ export default function AuthPage() {
               <div className="relative">
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="请输入密码"
                   autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
+                  disabled={pending}
                   className="h-9 pr-9"
                 />
                 <button
@@ -116,19 +73,19 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {error && (
+            {state?.error && (
               <p className="text-sm text-red-500" role="alert">
-                {error}
+                {state.error}
               </p>
             )}
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={pending}
               size="lg"
               className="mt-1 w-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60"
             >
-              {loading ? (
+              {pending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   登录中...

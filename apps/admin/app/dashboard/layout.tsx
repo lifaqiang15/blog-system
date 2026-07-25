@@ -1,21 +1,19 @@
-"use client"
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import DashboardShell from "@/components/layout/dashboard-shell"
 
-import { useState } from "react"
-import Sidebar from "@/components/layout/sidebar"
-import Headbar from "@/components/layout/headbar"
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [collapsed, setCollapsed] = useState(false)
+  const session = await auth()
+  if (!session?.user) redirect("/auth")
+
+  const userName = session.user.name ?? session.user.email ?? "用户"
+  const userInitial = userName.charAt(0)
 
   return (
-    <div className="flex h-full">
-      <Sidebar collapsed={collapsed} />
-      <div className="flex h-full flex-1 flex-col overflow-hidden">
-        <Headbar collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
-        <main className="flex-1 overflow-y-auto">{children}</main>
-      </div>
-    </div>
+    <DashboardShell userName={userName} userInitial={userInitial}>
+      {children}
+    </DashboardShell>
   )
 }
