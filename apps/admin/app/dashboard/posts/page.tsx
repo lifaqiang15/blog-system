@@ -1,3 +1,7 @@
-export default function Posts() {
-  return <div>这里是博客管理</div>
+import { getPosts } from "./actions"
+import PostsClient from "./client"
+
+export default async function PostsPage() {
+  const posts = await getPosts()
+  return <PostsClient posts={posts} />
 }

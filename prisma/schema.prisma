@@ -71,7 +71,7 @@ model Category {
 // fields: [authorId]：本表外键字段
 // references: [id]：关联目标表的主键
 // onDelete级联策略: Cascade / SetNull / Restrict
-// Cascade：删除主表数据，自动删除所有关联子数据（删用户，文章全删）
+// Cascade：删除主表数据，自动删除所有关联子数据（删用户，博客全删）
 // SetNull：删除主数据，子表外键置 null（要求外键字段 ? 可空）
 // Restrict：禁止删除，存在关联数据时直接报错（安全默认值）
 model Post {

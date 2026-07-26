@@ -34,7 +34,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto px-2 py-4">
         <ul className="space-y-1">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href
+            const isActive = pathname === href || pathname.startsWith(href + "/")
             return (
               <li key={href}>
                 <Link
