@@ -11,6 +11,7 @@ export async function loginAction(_prev: { error: string } | null, formData: For
   if (!password) return { error: "请输入密码" }
 
   try {
+    // 把传入的 email 和 password 作为 credentials 参数交给 authorize 处理
     await signIn("credentials", { email: email.trim(), password, redirectTo: "/dashboard" })
   } catch (error) {
     if (error instanceof AuthError) {
