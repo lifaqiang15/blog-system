@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import dayjs from "dayjs"
 import { Plus, Pencil, Trash2, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -158,7 +159,7 @@ export default function CategoriesClient({ initialCategories }: { initialCategor
                     {category.description || "—"}
                   </td>
                   <td className="px-4 py-3 text-zinc-400">
-                    {category.createdAt.toISOString().slice(0, 10)}
+                    {dayjs(category.createdAt).format("YYYY-MM-DD HH:mm:ss")}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">

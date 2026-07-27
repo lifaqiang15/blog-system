@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ArrowLeft, Pencil } from "lucide-react"
+import dayjs from "dayjs"
 import TiptapEditor from "@/components/tiptap"
 import type { PostDetail } from "../actions"
 
@@ -13,7 +14,9 @@ const STATUS_STYLE = {
 }
 
 export default function PostDetailClient({ post }: { post: PostDetail }) {
-  const date = (post.publishedAt ?? post.createdAt).toISOString().slice(0, 10)
+  const publishedAt = post.publishedAt ? dayjs(post.publishedAt).format("YYYY-MM-DD HH:mm:ss") : null
+  const updatedAt = dayjs(post.updatedAt).format("YYYY-MM-DD HH:mm:ss")
+  const showUpdated = publishedAt && updatedAt !== publishedAt
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 flex flex-col gap-6">
@@ -48,7 +51,9 @@ export default function PostDetailClient({ post }: { post: PostDetail }) {
           <span>·</span>
           <span>{post.authorName}</span>
           <span>·</span>
-          <span>{date}</span>
+          {publishedAt && <span>发布于 {publishedAt}</span>}
+          {!publishedAt && <span>创建于 {dayjs(post.createdAt).format("YYYY-MM-DD HH:mm:ss")}</span>}
+          {showUpdated && <><span>·</span><span>更新于 {updatedAt}</span></>}
         </div>
       </div>
 
