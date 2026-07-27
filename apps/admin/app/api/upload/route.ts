@@ -1,4 +1,4 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
+import { put } from "@vercel/blob"
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 
@@ -8,21 +8,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "未登录" }, { status: 401 })
   }
 
-  const body = (await request.json()) as HandleUploadBody
+  const form = await request.formData()
+  const file = form.get("file") as File | null
+  if (!file) return NextResponse.json({ error: "缺少文件" }, { status: 400 })
+  if (!file.type.startsWith("image/")) return NextResponse.json({ error: "只支持图片文件" }, { status: 400 })
+  if (file.size > 4.5 * 1024 * 1024) return NextResponse.json({ error: "图片不能超过 4.5MB" }, { status: 400 })
 
-  try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => ({
-        allowedContentTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-        maximumSizeInBytes: 10 * 1024 * 1024,
-        tokenPayload: JSON.stringify({ userId: session.user!.id, pathname }),
-      }),
-      onUploadCompleted: async () => {},
-    })
-    return NextResponse.json(jsonResponse)
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 400 })
-  }
+  const blob = await put(`covers/${Date.now()}-${file.name}`, file, { access: "public" })
+  return NextResponse.json({ url: blob.url })
 }
+
