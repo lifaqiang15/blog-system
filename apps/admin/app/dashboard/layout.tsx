@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import DashboardShell from "@/components/layout/dashboard-shell"
+import SessionInitializer from "@/components/session-initializer"
 
 export default async function DashboardLayout({
   children,
@@ -13,6 +14,11 @@ export default async function DashboardLayout({
 
   return (
     <DashboardShell userName={userName} userInitial={userInitial}>
+      <SessionInitializer
+        userId={session.user.id}
+        userName={userName}
+        role={session.user.role}
+      />
       {children}
     </DashboardShell>
   )

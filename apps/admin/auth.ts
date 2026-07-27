@@ -36,6 +36,7 @@ const result: NextAuthResult = NextAuth({
           data: { lastLoginAt: new Date() },
         })
 
+        // 返回 user 对象则登录成功，返回 null 则失败
         return {
           id: user.id,
           email: user.email,
