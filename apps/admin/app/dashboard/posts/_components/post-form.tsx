@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Save, Send } from "lucide-react"
+import { ArrowLeft, Save, Send, Upload, X } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { upload } from "@vercel/blob/client"
 import TiptapEditor from "@/components/tiptap"
 import type { PostCategory } from "../actions"
 
@@ -50,8 +51,26 @@ export default function PostFormClient({
   const [coverImage, setCoverImage] = useState(initialValues?.coverImage ?? "")
   const [content, setContent] = useState<object | null>(initialValues?.content ?? null)
   const [submitting, setSubmitting] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
+  async function handleFileUpload(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("只支持图片文件"); return }
+    if (file.size > 10 * 1024 * 1024) { toast.error("图片不能超过 10MB"); return }
+    setUploading(true)
+    try {
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+      })
+      setCoverImage(blob.url)
+    } catch {
+      toast.error("上传失败，请重试")
+    } finally {
+      setUploading(false)
+    }
+  }
   function validate() {
     const e: Record<string, string> = {}
     if (!title.trim()) e.title = "标题不能为空"
@@ -168,16 +187,9 @@ export default function PostFormClient({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-700">封面图片 URL</label>
-            <input
-              type="url"
-              placeholder="https://..."
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            />
-            {coverImage && (
-              <div className="relative mt-1 h-32 w-full overflow-hidden rounded-lg border border-gray-200">
+            <label className="text-sm font-medium text-gray-700">封面图片</label>
+            {coverImage ? (
+              <div className="relative h-36 w-full overflow-hidden rounded-lg border border-gray-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={coverImage}
@@ -185,8 +197,45 @@ export default function PostFormClient({
                   className="h-full w-full object-cover"
                   onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none" }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setCoverImage("")}
+                  className="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-500 disabled:opacity-50"
+              >
+                <Upload className="h-5 w-5" />
+                <span className="text-xs">{uploading ? "上传中..." : "点击上传图片"}</span>
+                <span className="text-xs text-gray-300">支持 JPG、PNG、WebP，最大 10MB</span>
+              </button>
             )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f) }}
+            />
+            <div className="flex items-center gap-2">
+              <div className="h-px flex-1 bg-gray-100" />
+              <span className="text-xs text-gray-300">或填写 URL</span>
+              <div className="h-px flex-1 bg-gray-100" />
+            </div>
+            <input
+              type="url"
+              placeholder="https://..."
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            />
           </div>
 
           {metaInfo ? (
