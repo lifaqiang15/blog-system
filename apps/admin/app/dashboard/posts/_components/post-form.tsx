@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Save, Send, Upload, X } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { upload } from "@vercel/blob/client"
 import TiptapEditor from "@/components/tiptap"
 import type { PostCategory } from "../actions"
 
@@ -57,14 +56,15 @@ export default function PostFormClient({
 
   async function handleFileUpload(file: File) {
     if (!file.type.startsWith("image/")) { toast.error("只支持图片文件"); return }
-    if (file.size > 10 * 1024 * 1024) { toast.error("图片不能超过 10MB"); return }
+    if (file.size > 4.5 * 1024 * 1024) { toast.error("图片不能超过 4.5MB"); return }
     setUploading(true)
     try {
-      const blob = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/upload",
-      })
-      setCoverImage(blob.url)
+      const form = new FormData()
+      form.append("file", file)
+      const res = await fetch("/api/upload", { method: "POST", body: form })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error ?? "上传失败"); return }
+      setCoverImage(data.url)
     } catch {
       toast.error("上传失败，请重试")
     } finally {
