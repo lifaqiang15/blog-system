@@ -1,10 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Pencil } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react"
 import dayjs from "dayjs"
+import { toast } from "sonner"
 import TiptapEditor from "@/components/tiptap"
-import type { PostDetail } from "../actions"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { deletePostAction, type PostDetail } from "../actions"
 
 const STATUS_LABEL = { DRAFT: "草稿", PUBLISHED: "已发布", ARCHIVED: "已归档" }
 const STATUS_STYLE = {
@@ -14,9 +19,29 @@ const STATUS_STYLE = {
 }
 
 export default function PostDetailClient({ post }: { post: PostDetail }) {
+  const router = useRouter()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const publishedAt = post.publishedAt ? dayjs(post.publishedAt).format("YYYY-MM-DD HH:mm:ss") : null
   const updatedAt = dayjs(post.updatedAt).format("YYYY-MM-DD HH:mm:ss")
   const showUpdated = publishedAt && updatedAt !== publishedAt
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const result = await deletePostAction(post.id)
+      if (result?.error) {
+        toast.error(result.error)
+        return
+      }
+      toast.success("博客已删除")
+      router.push("/dashboard/posts")
+      router.refresh()
+    } finally {
+      setDeleting(false)
+      setDeleteDialogOpen(false)
+    }
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 flex flex-col gap-6">
@@ -29,13 +54,23 @@ export default function PostDetailClient({ post }: { post: PostDetail }) {
           <ArrowLeft className="h-4 w-4" />
           返回列表
         </Link>
-        <Link
-          href={`/dashboard/posts/${post.id}/edit`}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98]"
-        >
-          <Pencil className="h-4 w-4" />
-          编辑
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setDeleteDialogOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 shadow-sm transition-all hover:bg-red-50 active:scale-[0.98]"
+          >
+            <Trash2 className="h-4 w-4" />
+            删除
+          </button>
+          <Link
+            href={`/dashboard/posts/${post.id}/edit`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98]"
+          >
+            <Pencil className="h-4 w-4" />
+            编辑
+          </Link>
+        </div>
       </div>
 
       {/* Title & meta */}
@@ -71,6 +106,34 @@ export default function PostDetailClient({ post }: { post: PostDetail }) {
       ) : (
         <p className="py-12 text-center text-sm text-gray-300">暂无内容</p>
       )}
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认删除博客</DialogTitle>
+            <DialogDescription>
+              删除后将移除博客内容，并尝试清理不再被其他博客引用的托管图片资源。
+            </DialogDescription>
+          </DialogHeader>
+          <p className="py-2 text-sm text-zinc-600">
+            确定要删除博客「
+            <span className="font-medium text-zinc-900">{post.title}</span>
+            」吗？此操作不可撤销。
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+              取消
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-red-500 text-white shadow-sm hover:bg-red-600 active:scale-[0.98]"
+            >
+              {deleting ? "删除中..." : "删除"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

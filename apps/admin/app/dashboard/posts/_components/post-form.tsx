@@ -215,7 +215,7 @@ export default function PostFormClient({
               >
                 <Upload className="h-5 w-5" />
                 <span className="text-xs">{uploading ? "上传中..." : "点击上传图片"}</span>
-                <span className="text-xs text-gray-300">支持 JPG、PNG、WebP，最大 10MB</span>
+                <span className="text-xs text-gray-300">支持 JPG、PNG、WebP，最大 4.5 MB</span>
               </button>
             )}
             <input
