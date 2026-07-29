@@ -1,11 +1,14 @@
 'use client'
 
+import { useRef, useState } from 'react'
+import Image from '@tiptap/extension-image'
 import { Tiptap, useEditor, useTiptap, useTiptapState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { toast } from 'sonner'
 import {
   Bold, Italic, Strikethrough, Code, Code2,
   Heading1, Heading2, Heading3,
-  List, ListOrdered, Quote, Minus, Undo, Redo,
+  List, ListOrdered, Quote, Minus, Undo, Redo, ImagePlus, Link2,
 } from 'lucide-react'
 
 function ToolbarBtn({
@@ -44,6 +47,10 @@ function Divider() {
 
 function Toolbar() {
   const { editor } = useTiptap()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [showImageUrlInput, setShowImageUrlInput] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
 
   const isBold       = useTiptapState((s) => s.editor.isActive('bold'))
   const isItalic     = useTiptapState((s) => s.editor.isActive('italic'))
@@ -58,6 +65,47 @@ function Toolbar() {
   const isCodeBlock  = useTiptapState((s) => s.editor.isActive('codeBlock'))
   const canUndo      = useTiptapState((s) => s.editor.can().undo())
   const canRedo      = useTiptapState((s) => s.editor.can().redo())
+
+  async function handleImageUpload(file: File) {
+    if (!file.type.startsWith('image/')) {
+      toast.error('只支持图片文件')
+      return
+    }
+    if (file.size > 4.5 * 1024 * 1024) {
+      toast.error('图片不能超过 4.5MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+
+      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error ?? '上传失败')
+        return
+      }
+
+      editor.chain().focus().setImage({ src: data.url, alt: file.name }).run()
+      toast.success('图片已插入正文')
+    } catch {
+      toast.error('上传失败，请重试')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  function handleInsertImageByUrl() {
+    const url = imageUrl.trim()
+    if (!url) return
+    editor.chain().focus().setImage({ src: url }).run()
+    setImageUrl('')
+    setShowImageUrlInput(false)
+  }
 
   if (!editor) return null
 
@@ -105,6 +153,12 @@ function Toolbar() {
       <ToolbarBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="分割线">
         <Minus className="h-3.5 w-3.5" />
       </ToolbarBtn>
+      <ToolbarBtn onClick={() => fileInputRef.current?.click()} disabled={uploading} title={uploading ? '图片上传中...' : '上传图片'}>
+        <ImagePlus className="h-3.5 w-3.5" />
+      </ToolbarBtn>
+      <ToolbarBtn onClick={() => setShowImageUrlInput((value) => !value)} active={showImageUrlInput} title="图片 URL">
+        <Link2 className="h-3.5 w-3.5" />
+      </ToolbarBtn>
 
       <Divider />
 
@@ -114,6 +168,45 @@ function Toolbar() {
       <ToolbarBtn onClick={() => editor.chain().focus().redo().run()} disabled={!canRedo} title="重做 (Ctrl+Y)">
         <Redo className="h-3.5 w-3.5" />
       </ToolbarBtn>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) void handleImageUpload(file)
+        }}
+      />
+      {showImageUrlInput && (
+        <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-1.5">
+          <input
+            type="url"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://example.com/image.png"
+            className="w-56 rounded border border-gray-200 px-2 py-1 text-xs text-gray-700 outline-none focus:border-blue-500"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleInsertImageByUrl()
+              }
+              if (e.key === 'Escape') {
+                setShowImageUrlInput(false)
+                setImageUrl('')
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleInsertImageByUrl}
+            disabled={!imageUrl.trim()}
+            className="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            插入
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -126,7 +219,7 @@ export type TiptapEditorProps = {
 
 export default function TiptapEditor({ onChange, initialContent, editable = true }: TiptapEditorProps) {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, Image],
     content: initialContent || '',
     editable,
     immediatelyRender: false,
