@@ -221,7 +221,7 @@ export default function PostFormClient({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
               className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f) }}
             />
