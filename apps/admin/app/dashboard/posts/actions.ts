@@ -1,6 +1,7 @@
 "use server"
 
 import { del } from "@vercel/blob"
+import type { Prisma } from "@prisma/client"
 import { db } from "@/lib/db"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
@@ -63,6 +64,16 @@ function collectManagedBlobUrls(post: { coverImage: string | null; content: unkn
   return urls
 }
 
+/**
+ * 将来自客户端的正文内容转换为可安全写入数据库的纯 JSON。
+ * @param content 客户端提交的正文内容。
+ * @returns 可用于 Prisma Json 字段的纯 JSON 值；为空时返回 undefined。
+ */
+function normalizePostContent(content: object | null): Prisma.InputJsonValue | undefined {
+  if (!content) return undefined
+  return JSON.parse(JSON.stringify(content)) as Prisma.InputJsonValue
+}
+
 export type PostCategory = { id: string; name: string }
 
 /**
@@ -97,6 +108,7 @@ export async function createPostAction(
   if (!session?.user?.id) return { error: "请先登录" }
 
   try {
+    const normalizedContent = normalizePostContent(input.content)
     const post = await db.post.create({
       data: {
         title: input.title,
@@ -104,7 +116,7 @@ export async function createPostAction(
         summary: input.summary || null,
         coverImage: input.coverImage || null,
         status: input.status as never,
-        content: input.content ?? undefined,
+        content: normalizedContent,
         authorId: session.user.id,
         publishedAt: input.status === "PUBLISHED" ? new Date() : null,
       },
@@ -112,7 +124,16 @@ export async function createPostAction(
     })
     revalidatePath("/dashboard/posts")
     return { data: { id: post.id } }
-  } catch {
+  } catch (error) {
+    console.error("创建博客失败", {
+      userId: session.user.id,
+      title: input.title,
+      categoryId: input.categoryId,
+      status: input.status,
+      hasCoverImage: !!input.coverImage,
+      hasContent: !!input.content,
+      error,
+    })
     return { error: "创建博客失败，请重试" }
   }
 }
@@ -190,6 +211,7 @@ export async function updatePostAction(
   input: UpdatePostInput
 ): Promise<{ error: string } | null> {
   try {
+    const normalizedContent = normalizePostContent(input.content)
     const existing = await db.post.findUnique({
       where: { id: input.id },
       select: { publishedAt: true },
@@ -202,7 +224,7 @@ export async function updatePostAction(
         summary: input.summary || null,
         coverImage: input.coverImage || null,
         status: input.status as never,
-        content: input.content ?? undefined,
+        content: normalizedContent,
         publishedAt:
           input.status === "PUBLISHED" && !existing?.publishedAt
             ? new Date()
