@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Save, Send, Upload, X } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import dayjs from "dayjs"
 import TiptapEditor from "@/components/tiptap"
 import type { PostCategory } from "../actions"
 
@@ -242,17 +243,17 @@ export default function PostFormClient({
             <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs text-gray-500 space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-gray-400">创建时间</span>
-                <span>{metaInfo.createdAt.toISOString().slice(0, 10)}</span>
+                <span>{dayjs(metaInfo.createdAt).format("YYYY-MM-DD HH:mm:ss")}</span>
               </div>
               {metaInfo.publishedAt && (
                 <div className="flex justify-between">
                   <span className="text-gray-400">发布时间</span>
-                  <span>{metaInfo.publishedAt.toISOString().slice(0, 10)}</span>
+                  <span>{dayjs(metaInfo.publishedAt).format("YYYY-MM-DD HH:mm:ss")}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-400">最后更新</span>
-                <span>{metaInfo.updatedAt.toISOString().slice(0, 10)}</span>
+                <span>{dayjs(metaInfo.updatedAt).format("YYYY-MM-DD HH:mm:ss")}</span>
               </div>
             </div>
           ) : (

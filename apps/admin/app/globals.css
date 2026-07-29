@@ -308,4 +308,12 @@
 .tiptap-editor .ProseMirror pre { background: #1f2937; color: #f9fafb; border-radius: 0.5rem; padding: 1rem; overflow-x: auto; }
 .tiptap-editor .ProseMirror pre code { background: transparent; padding: 0; color: inherit; }
 .tiptap-editor .ProseMirror hr { border: none; border-top: 1px solid #e5e7eb; margin: 1rem 0; }
+.tiptap-editor .ProseMirror img,
+.tiptap-readonly .ProseMirror img {
+  display: block;
+  max-width: min(100%, 720px);
+  height: auto;
+  margin: 1rem auto;
+  border-radius: 0.75rem;
+}
 .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #9ca3af; pointer-events: none; float: left; height: 0; }

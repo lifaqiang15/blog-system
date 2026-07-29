@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
+import dayjs from "dayjs"
 
 type PostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED"
 
@@ -28,7 +29,7 @@ const STATUS_STYLE: Record<PostStatus, string> = {
 }
 
 export default function PostCard({ id, title, summary, coverImage, status, authorName, categoryName, publishedAt, createdAt }: PostCardProps) {
-  const date = (publishedAt ?? createdAt).toISOString().slice(0, 10)
+  const date = `发布于 ${dayjs(publishedAt ?? createdAt).format("YYYY-MM-DD HH:mm:ss")}`
 
   return (
     <Link href={`/dashboard/posts/${id}`} className="block">
